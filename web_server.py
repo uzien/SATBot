@@ -107,8 +107,11 @@ async def handle_http_connection(reader: asyncio.StreamReader, writer: asyncio.S
                     logger.info("Telegram Webhook Update: %s", payload_str)
                     from telegram import Update
                     data = json.loads(payload_str)
-                    update = Update.de_json(data, _TELEGRAM_APP.bot)
-                    asyncio.create_task(_TELEGRAM_APP.process_update(update))
+                    if isinstance(data, dict) and "update_id" in data:
+                        update = Update.de_json(data, _TELEGRAM_APP.bot)
+                        asyncio.create_task(_TELEGRAM_APP.process_update(update))
+                    else:
+                        logger.debug("Received empty or non-update payload: %s", payload_str)
                 except Exception as e:
                     logger.error("Error processing webhook update: %s", e)
 
